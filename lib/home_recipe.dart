@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:aplikasi_makanan/splash.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'add_recipe.dart';
 import 'detail_recipe.dart';
 import '../models/recipe.dart';
@@ -144,15 +145,15 @@ class _HomeRecipePageState extends State<HomeRecipePage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF9F9F9),
       appBar: AppBar(
-        elevation: 0,
+        elevation: 2,
         backgroundColor: Colors.white,
         centerTitle: true,
-        title: const Text(
+        title: Text(
           'Chef',
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w800,
-            color: Colors.black,
+          style: GoogleFonts.poppins(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
           ),
         ),
       ),
@@ -260,17 +261,25 @@ class _HomeRecipePageState extends State<HomeRecipePage> {
                               ),
                             );
                           },
-                          child: SizedBox(
-                            height: 300,
-                            child: Card(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              elevation: 4,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Expanded(
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Expanded(
+                                  child: Hero(
+                                    tag: recipe.imagePath,
                                     child: ClipRRect(
                                       borderRadius: const BorderRadius.vertical(
                                         top: Radius.circular(20),
@@ -287,64 +296,63 @@ class _HomeRecipePageState extends State<HomeRecipePage> {
                                               ),
                                     ),
                                   ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 6,
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 6,
+                                  ),
+                                  child: Text(
+                                    recipe.name,
+                                    style: GoogleFonts.poppins(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 15,
                                     ),
-                                    child: Text(
-                                      recipe.name,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 15,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.edit,
+                                          color: Colors.blueAccent,
+                                        ),
+                                        onPressed: () => _editRecipe(recipe),
+                                        tooltip: 'Edit',
                                       ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.delete,
+                                          color: Colors.redAccent,
+                                        ),
+                                        onPressed: () => _deleteRecipe(recipe),
+                                        tooltip: 'Hapus',
+                                      ),
+                                      IconButton(
+                                        icon: Icon(
+                                          recipe.isFavorite
+                                              ? Icons.favorite
+                                              : Icons.favorite_border,
+                                          color:
+                                              recipe.isFavorite
+                                                  ? Colors.red
+                                                  : Colors.grey,
+                                        ),
+                                        onPressed:
+                                            () => _toggleFavorite(recipe),
+                                        tooltip: 'Favorit',
+                                      ),
+                                    ],
                                   ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        IconButton(
-                                          icon: const Icon(
-                                            Icons.edit,
-                                            color: Colors.blueAccent,
-                                          ),
-                                          onPressed: () => _editRecipe(recipe),
-                                          tooltip: 'Edit',
-                                        ),
-                                        IconButton(
-                                          icon: const Icon(
-                                            Icons.delete,
-                                            color: Colors.redAccent,
-                                          ),
-                                          onPressed:
-                                              () => _deleteRecipe(recipe),
-                                          tooltip: 'Hapus',
-                                        ),
-                                        IconButton(
-                                          icon: Icon(
-                                            recipe.isFavorite
-                                                ? Icons.favorite
-                                                : Icons.favorite_border,
-                                            color:
-                                                recipe.isFavorite
-                                                    ? Colors.red
-                                                    : Colors.grey,
-                                          ),
-                                          onPressed:
-                                              () => _toggleFavorite(recipe),
-                                          tooltip: 'Favorit',
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ),
                         );

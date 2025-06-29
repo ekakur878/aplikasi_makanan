@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'models/recipe.dart';
 
 class DetailRecipePage extends StatelessWidget {
@@ -25,81 +26,102 @@ class DetailRecipePage extends StatelessWidget {
       backgroundColor: const Color(0xFFFDFCFB),
       appBar: AppBar(
         backgroundColor: Colors.white,
-        elevation: 0,
+        elevation: 1,
         title: Text(
           recipe.name,
-          style: const TextStyle(
+          style: GoogleFonts.poppins(
             fontWeight: FontWeight.bold,
             fontSize: 20,
-            color: Colors.black,
+            color: Colors.black87,
           ),
         ),
-        iconTheme: const IconThemeData(color: Colors.black),
+        iconTheme: const IconThemeData(color: Colors.black87),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Container(
-              height: 220,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.shade300,
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
+            Hero(
+              tag: recipe.imagePath,
+              child: Container(
+                height: 220,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: imageWidget,
               ),
-              clipBehavior: Clip.antiAlias,
-              child: imageWidget,
             ),
-            const SizedBox(height: 24),
-            const Row(
+            const SizedBox(height: 28),
+
+            // Bahan-bahan Section
+            Row(
               children: [
-                Icon(Icons.shopping_basket, color: Colors.pink),
-                SizedBox(width: 8),
+                const Icon(Icons.shopping_basket, color: Colors.pink),
+                const SizedBox(width: 8),
                 Text(
                   "Bahan-Bahan",
-                  style: TextStyle(
+                  style: GoogleFonts.poppins(
                     fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w700,
                     color: Colors.pink,
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 8),
-            Text(
-              recipe.ingredients,
-              style: const TextStyle(fontSize: 16, height: 1.5),
-            ),
+            _contentCard(recipe.ingredients),
+
             const SizedBox(height: 24),
-            const Row(
+
+            // Langkah-langkah Section
+            Row(
               children: [
-                Icon(Icons.restaurant_menu, color: Colors.green),
-                SizedBox(width: 8),
+                const Icon(Icons.restaurant_menu, color: Colors.green),
+                const SizedBox(width: 8),
                 Text(
                   "Langkah Memasak",
-                  style: TextStyle(
+                  style: GoogleFonts.poppins(
                     fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w700,
                     color: Colors.green,
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 8),
-            Text(
-              recipe.steps,
-              style: const TextStyle(fontSize: 16, height: 1.5),
-            ),
+            _contentCard(recipe.steps),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _contentCard(String text) {
+    return Container(
+      margin: const EdgeInsets.only(top: 4),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Text(text, style: GoogleFonts.poppins(fontSize: 15, height: 1.6)),
     );
   }
 }
