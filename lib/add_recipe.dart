@@ -5,9 +5,13 @@ import 'package:image_picker/image_picker.dart';
 import 'models/recipe.dart';
 
 class AddRecipePage extends StatefulWidget {
-  final Function(Recipe) onRecipeAdded;
+  /// Callback hanya dipakai saat MODE TAMBAH
+  final Function(Recipe)? onRecipeAdded;
 
-  const AddRecipePage({super.key, required this.onRecipeAdded});
+  /// Jika diisi berarti MODE EDIT
+  final Recipe? existingRecipe;
+
+  const AddRecipePage({super.key, this.onRecipeAdded, this.existingRecipe});
 
   @override
   State<AddRecipePage> createState() => _AddRecipePageState();
@@ -17,40 +21,61 @@ class _AddRecipePageState extends State<AddRecipePage> {
   final _nameController = TextEditingController();
   final _ingredientsController = TextEditingController();
   final _stepsController = TextEditingController();
-  XFile? _pickedImage;
+
+  XFile? _pickedImage; // gambar baru (boleh null kalau tak diganti)
+
+  bool get _isEdit => widget.existingRecipe != null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_isEdit) {
+      final r = widget.existingRecipe!;
+      _nameController.text = r.name;
+      _ingredientsController.text = r.ingredients;
+      _stepsController.text = r.steps;
+      // Tampilkan thumbnail lama; pengguna boleh membiarkannya
+      _pickedImage = XFile(r.imagePath);
+    }
+  }
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final picked = await picker.pickImage(source: ImageSource.gallery);
-    if (picked != null) {
-      setState(() {
-        _pickedImage = picked;
-      });
-    }
+    if (picked != null) setState(() => _pickedImage = picked);
   }
 
-  void _submitRecipe() {
-    if (_nameController.text.isEmpty ||
-        _ingredientsController.text.isEmpty ||
-        _stepsController.text.isEmpty ||
-        _pickedImage == null) {
+  void _submit() {
+    if (_nameController.text.trim().isEmpty ||
+        _ingredientsController.text.trim().isEmpty ||
+        _stepsController.text.trim().isEmpty ||
+        _pickedImage == null)
+      return; // validasi sederhana
+
+    final recipe = Recipe(
+      name: _nameController.text.trim(),
+      ingredients: _ingredientsController.text.trim(),
+      steps: _stepsController.text.trim(),
+      imagePath: _pickedImage!.path,
+      isFavorite: _isEdit ? widget.existingRecipe!.isFavorite : false,
+    );
+
+    // ───── Mode EDIT ─────
+    if (_isEdit) {
+      Navigator.pop(context, recipe); // kirim balik hasil edit
       return;
     }
 
-    final recipe = Recipe(
-      name: _nameController.text,
-      ingredients: _ingredientsController.text,
-      steps: _stepsController.text,
-      imagePath: _pickedImage!.path,
-      isFavorite: false,
-    );
-    widget.onRecipeAdded(recipe);
+    // ───── Mode TAMBAH ────
+    widget.onRecipeAdded!(recipe);
     Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
     final isWeb = kIsWeb;
+    final title = _isEdit ? 'Edit Resep' : 'Tambah Resep';
+    final btnLabel = _isEdit ? 'Simpan' : 'Tambah';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF9F9F9),
@@ -61,10 +86,10 @@ class _AddRecipePageState extends State<AddRecipePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Center(
+                Center(
                   child: Text(
-                    'Register',
-                    style: TextStyle(
+                    title,
+                    style: const TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w800,
                       color: Colors.black,
@@ -73,28 +98,22 @@ class _AddRecipePageState extends State<AddRecipePage> {
                 ),
                 const SizedBox(height: 28),
 
-                const Text('Nama Resep', style: TextStyle(fontSize: 16)),
-                const SizedBox(height: 6),
+                _label('Nama Resep'),
                 _buildTextField(_nameController),
 
                 const SizedBox(height: 16),
-                const Text('Bahan-Bahan', style: TextStyle(fontSize: 16)),
-                const SizedBox(height: 6),
+                _label('Bahan-Bahan'),
                 _buildTextField(_ingredientsController, maxLines: 3),
 
                 const SizedBox(height: 16),
-                const Text(
-                  'Langkah-Langkah Memasak',
-                  style: TextStyle(fontSize: 16),
-                ),
-                const SizedBox(height: 6),
+                _label('Langkah-Langkah Memasak'),
                 _buildTextField(_stepsController, maxLines: 4),
 
                 const SizedBox(height: 20),
                 ElevatedButton.icon(
                   onPressed: _pickImage,
                   icon: const Icon(Icons.image),
-                  label: const Text('Pilih Gambar Resep'),
+                  label: Text(_isEdit ? 'Ganti Gambar' : 'Pilih Gambar Resep'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF1E6DFB),
                     foregroundColor: Colors.white,
@@ -125,7 +144,7 @@ class _AddRecipePageState extends State<AddRecipePage> {
 
                 const SizedBox(height: 28),
                 ElevatedButton(
-                  onPressed: _submitRecipe,
+                  onPressed: _submit,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF1E6DFB),
                     foregroundColor: Colors.white,
@@ -134,9 +153,12 @@ class _AddRecipePageState extends State<AddRecipePage> {
                       borderRadius: BorderRadius.circular(16),
                     ),
                   ),
-                  child: const Text(
-                    'Register',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  child: Text(
+                    btnLabel,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ],
@@ -147,20 +169,26 @@ class _AddRecipePageState extends State<AddRecipePage> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, {int maxLines = 1}) {
-    return TextField(
-      controller: controller,
-      maxLines: maxLines,
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
+  Widget _label(String text) =>
+      Text(text, style: const TextStyle(fontSize: 16));
+
+  Widget _buildTextField(TextEditingController c, {int maxLines = 1}) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: TextField(
+        controller: c,
+        maxLines: maxLines,
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 14,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
         ),
       ),
     );

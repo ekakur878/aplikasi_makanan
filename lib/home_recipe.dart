@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:aplikasi_makanan/splash.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'add_recipe.dart';
@@ -52,6 +53,52 @@ class _HomeRecipePageState extends State<HomeRecipePage> {
     FileHelper.saveRecipes(_recipes); // Simpan perubahan favorit
   }
 
+  void _editRecipe(Recipe oldRecipe) async {
+    final editedRecipe = await Navigator.push<Recipe>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AddRecipePage(existingRecipe: oldRecipe),
+      ),
+    );
+
+    if (editedRecipe != null) {
+      setState(() {
+        final index = _recipes.indexOf(oldRecipe);
+        _recipes[index] = editedRecipe;
+        _applySearch(_searchText);
+      });
+      FileHelper.saveRecipes(_recipes);
+    }
+  }
+
+  void _deleteRecipe(Recipe recipe) {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Hapus Resep'),
+            content: const Text('Apakah Anda yakin ingin menghapus resep ini?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Batal'),
+              ),
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    _recipes.remove(recipe);
+                    _applySearch(_searchText);
+                  });
+                  FileHelper.saveRecipes(_recipes);
+                  Navigator.pop(context);
+                },
+                child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+              ),
+            ],
+          ),
+    );
+  }
+
   Future<void> _resetRecipes() async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -67,7 +114,14 @@ class _HomeRecipePageState extends State<HomeRecipePage> {
                 child: const Text('Batal'),
               ),
               TextButton(
-                onPressed: () => Navigator.pop(context, true),
+                onPressed: () {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(
+                      builder: (_) => SplashScreen(initialRecipes: const []),
+                    ),
+                    (route) => true,
+                  );
+                },
                 child: const Text('Ya'),
               ),
             ],
@@ -161,7 +215,8 @@ class _HomeRecipePageState extends State<HomeRecipePage> {
               onChanged: _applySearch,
             ),
           ),
-          Expanded(
+          SizedBox(
+            height: MediaQuery.of(context).size.height - 150,
             child:
                 _filteredRecipes.isEmpty
                     ? Column(
@@ -205,61 +260,91 @@ class _HomeRecipePageState extends State<HomeRecipePage> {
                               ),
                             );
                           },
-                          child: Card(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            elevation: 4,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Expanded(
-                                  child: ClipRRect(
-                                    borderRadius: const BorderRadius.vertical(
-                                      top: Radius.circular(20),
+                          child: SizedBox(
+                            height: 300,
+                            child: Card(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              elevation: 4,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Expanded(
+                                    child: ClipRRect(
+                                      borderRadius: const BorderRadius.vertical(
+                                        top: Radius.circular(20),
+                                      ),
+                                      child:
+                                          isWeb
+                                              ? Image.network(
+                                                recipe.imagePath,
+                                                fit: BoxFit.cover,
+                                              )
+                                              : Image.file(
+                                                File(recipe.imagePath),
+                                                fit: BoxFit.cover,
+                                              ),
                                     ),
-                                    child:
-                                        isWeb
-                                            ? Image.network(
-                                              recipe.imagePath,
-                                              fit: BoxFit.cover,
-                                            )
-                                            : Image.file(
-                                              File(recipe.imagePath),
-                                              fit: BoxFit.cover,
-                                            ),
                                   ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 6,
-                                  ),
-                                  child: Text(
-                                    recipe.name,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 15,
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 6,
                                     ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                Align(
-                                  alignment: Alignment.centerRight,
-                                  child: IconButton(
-                                    icon: Icon(
-                                      recipe.isFavorite
-                                          ? Icons.favorite
-                                          : Icons.favorite_border,
-                                      color:
-                                          recipe.isFavorite
-                                              ? Colors.red
-                                              : Colors.grey,
+                                    child: Text(
+                                      recipe.name,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                    onPressed: () => _toggleFavorite(recipe),
                                   ),
-                                ),
-                              ],
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.edit,
+                                            color: Colors.blueAccent,
+                                          ),
+                                          onPressed: () => _editRecipe(recipe),
+                                          tooltip: 'Edit',
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.delete,
+                                            color: Colors.redAccent,
+                                          ),
+                                          onPressed:
+                                              () => _deleteRecipe(recipe),
+                                          tooltip: 'Hapus',
+                                        ),
+                                        IconButton(
+                                          icon: Icon(
+                                            recipe.isFavorite
+                                                ? Icons.favorite
+                                                : Icons.favorite_border,
+                                            color:
+                                                recipe.isFavorite
+                                                    ? Colors.red
+                                                    : Colors.grey,
+                                          ),
+                                          onPressed:
+                                              () => _toggleFavorite(recipe),
+                                          tooltip: 'Favorit',
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         );
