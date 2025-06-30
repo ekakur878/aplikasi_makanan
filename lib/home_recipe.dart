@@ -146,14 +146,14 @@ class _HomeRecipePageState extends State<HomeRecipePage> {
       backgroundColor: const Color(0xFFF9F9F9),
       appBar: AppBar(
         elevation: 2,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.blueAccent,
         centerTitle: true,
         title: Text(
-          'Chef',
+          'Resep Makanan',
           style: GoogleFonts.poppins(
             fontSize: 24,
             fontWeight: FontWeight.bold,
-            color: Colors.black87,
+            color: Colors.white,
           ),
         ),
       ),

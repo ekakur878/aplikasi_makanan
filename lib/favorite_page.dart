@@ -13,7 +13,7 @@ class FavoritePage extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF9F9F9),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.blue,
         elevation: 0,
         title: const Text(
           "Resep Favorit",
